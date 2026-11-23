@@ -126,3 +126,33 @@ def search_graph(query: str) -> str:
         return json.dumps({"error": str(e)}, ensure_ascii=False)
     except APIError as e:
         return json.dumps({"error": api_error_message(e.code)}, ensure_ascii=False)
+
+def make_quiz(lecture: int) -> str:
+    """指定した回の用語から1つ選び、
+    確認問題と答えを返す。
+
+    「第2回の確認問題を出して」のように
+    復習用の問題を求められたときに使う。
+    """
+    import random
+
+    glossary = load_glossary()
+
+    # 1. load_glossary() から lecture が一致する用語を集める
+    terms = [e for e in glossary if e["lecture"] == lecture]
+
+    if not terms:
+        return json.dumps({
+            "error": f"第{lecture}回の用語が見つかりません。"
+        }, ensure_ascii=False)
+
+    # 2. 1 つ選ぶ（random.choice）
+    selected = random.choice(terms)
+
+    # 3. 問題と答えを文字列で返す（ json.dumps など）
+    return json.dumps({
+        "quiz": f"次の用語を説明してください: 「{selected['term']}」",
+        "answer": selected["definition"],
+        "term": selected["term"],
+        "related": selected["related"],
+    }, ensure_ascii=False)
